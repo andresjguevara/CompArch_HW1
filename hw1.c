@@ -23,7 +23,7 @@ void swap(int *a, int *b)
     *b = temp;
 }
 
-int partition(int nums[], int low, int high, int isAscending)
+int partition(int nums[], int low, int high, bool isAscending)
 {
     int pivot = nums[high];
     int last_smallest = low - 1;
@@ -32,7 +32,7 @@ int partition(int nums[], int low, int high, int isAscending)
     {
         if (isAscending)
         {
-            if (nums[current_index] <= pivot)
+            if (nums[current_index] < pivot)
             {
                 last_smallest++;
                 swap(&nums[current_index], &nums[last_smallest]);
@@ -40,16 +40,15 @@ int partition(int nums[], int low, int high, int isAscending)
         }
         else
         {
-            if (nums[current_index] >= pivot)
+            if (nums[current_index] > pivot)
             {
                 last_smallest++;
                 swap(&nums[current_index], &nums[last_smallest]);
             }
         }
     }
-    last_smallest++;
-    swap(&nums[last_smallest], &nums[high]);
-    return last_smallest;
+    swap(&nums[last_smallest + 1], &nums[high]);
+    return last_smallest + 1;
 }
 
 void quicksort(int nums[], int low, int high, bool isAscending)
@@ -63,27 +62,111 @@ void quicksort(int nums[], int low, int high, bool isAscending)
     }
 }
 
+void merge(int nums[], int left, int middle, int right, bool is_ascending)
+{
+    int left_index, right_index, merge_index;
+    int size_left = middle - left + 1;
+    int size_right = right - middle;
+
+    int left_array[size_left], right_array[size_right];
+
+    for (int index = 0; index < size_left; index++)
+    {
+        left_array[index] = nums[left + index];
+    }
+    for (int index = 0; index < size_right; index++)
+    {
+        right_array[index] = nums[middle + 1 + index];
+    }
+
+    left_index = 0;
+    right_index = 0;
+    merge_index = left;
+
+    while (left_index < size_left && right_index < size_right)
+    {
+        if (is_ascending)
+        {
+            if (left_array[left_index] <= right_array[right_index])
+            {
+                nums[merge_index] = left_array[left_index];
+                left_index++;
+            }
+            else
+            {
+                nums[merge_index] = right_array[right_index];
+                right_index++;
+            }
+        }
+        else
+        {
+            if (left_array[left_index] >= right_array[right_index])
+            {
+                nums[merge_index] = left_array[left_index];
+                left_index++;
+            }
+            else
+            {
+                nums[merge_index] = right_array[right_index];
+                right_index++;
+            }
+        }
+
+        merge_index++;
+    }
+
+    while (left_index < size_left)
+    {
+        nums[merge_index] = left_array[left_index];
+        left_index++;
+        merge_index++;
+    }
+
+    while (right_index < size_right)
+    {
+        nums[merge_index] = right_array[right_index];
+        right_index++;
+        merge_index++;
+    }
+}
+
+void mergesort(int nums[], int left, int right, bool ascending)
+{
+    if (left < right)
+    {
+        int middle = left + (right - left) / 2;
+
+        mergesort(nums, left, middle, ascending);
+        mergesort(nums, middle + 1, right, ascending);
+
+        merge(nums, left, middle, right, ascending);
+    }
+}
+
 void print_array(int nums[], int length)
 {
     for (int i = 0; i < length; i++)
     {
         printf("%d ", nums[i]);
     }
-     printf("\n");
+    printf("\n");
 }
 
 int main()
 {
 
     int size = 1000000; // size of array
-    int* nums = (int *)malloc(sizeof(int)*size);
+    int *nums = (int *)malloc(sizeof(int) * size);
     srand(time(NULL)); // generate different sede everytime the program is ran
     generate_numbers(nums, size);
-    // printf("Before sorting\n");
-    // print_array(nums, size);
-    quicksort(nums, 0, size - 1, true);
-    quicksort(nums, (size/2), size - 1, false);
-    // printf("After sorting\n");
+    mergesort(nums, 0, size - 1, true);
+    mergesort(nums, size / 2, size - 1, false);
+    /**
+     * Initially, the code was run using the quicksort algortithm but it was seg faulting,
+     * after changing to mergesort, the code worked properly and much faster
+    // quicksort(nums, 0, size - 1, true);
+    // quicksort(nums, size / 2, size - 1, false);
+    */
     // print_array(nums, size);
     free(nums);
     return 0;
